@@ -32,6 +32,7 @@ _start:
 	blt			exit					@ if error exit
 	mov			r4,r0					@ save FD on f4
 
+read_dir:
 	@ read directory entries getdents
 	mov			r7,#141					@ syscall(getdents)
 	mov			r0,r4					@ FD
@@ -48,7 +49,7 @@ _start:
 
 loop:
 	cmp			r6,r5					
-	bge			close_and_exit
+	bge			read_dir
 
 	ldr			r9,=buff				@ load buffer address
 	add			r9,r9,r6				@ go to first entry point
@@ -68,6 +69,33 @@ loop:
 	cmp			r0,#'y'
 	bne			next_entry
 
+	@ branch to check 'U' (USB) or 'A' (ACM)
+	ldrb		r0,[r10,#3]
+	cmp			r0,#'U'
+	beq			chech_usb
+	cmp			r0,#'A'
+	beq			chech_acm
+	b			next_entry
+
+chech_usb:
+	ldrb		r0,[r10,#4]
+	cmp			r0,#'S'
+	bne			next_entry
+	ldrb		r0,[r10,#5]
+	cmp			r0,#'B'
+	bne			next_entry
+	b			match_found
+
+chech_acm:
+	ldrb		r0,[r10,#4]
+	cmp			r0,#'C'
+	bne			next_entry
+	ldrb		r0,[r10,#5]
+	cmp			r0,#'M'
+	bne			next_entry
+	b			match_found
+
+match_found:
 	@ print "/dev/"
 	mov			r7,#4					@ syscall(write)
 	mov			r0,#1					@ stdout
