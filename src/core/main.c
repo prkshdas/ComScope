@@ -1,7 +1,8 @@
 #include <ncurses.h>
 #include <unistd.h>
 #include <signal.h>
-#include "scanner.h"
+#include <stdio.h>
+#include "portpicker.h"
 
 static void handle_resize(int sig)
 {
@@ -20,30 +21,17 @@ int main(void)
     keypad(stdscr, TRUE);            /*enable arrow keys*/
     curs_set(0);                     /*hide cursor*/
 
-    /* --- temporary scanner test --- */
-    char ports[MAX_PORTS][64];
-    int count = scan_ports(ports, MAX_PORTS);
+    char *chosen = pick_port();
 
-    mvprintw(0, 0, "ComScope v0.1 -- Serial Port Scanner");
-    mvprintw(1, 0, "------------------------------------");
+    endwin(); /*restore terminal before printf*/
 
-    if (count == 0)
+    if (chosen == NULL)
     {
-        mvprintw(3, 0, "No serial ports found.");
-        mvprintw(4, 0, "Tip: run  socat -d -d pty,raw,echo=0 pty,raw,echo=0");
-        mvprintw(5, 0, "     in another terminal to create virtual ports.");
+        printf("No ports selected\n");
     }
     else
     {
-        mvprintw(3, 0, "Found %d port(s):", count);
-        for (int i = 0; i < count; i++)
-            mvprintw(4 + i, 2, "%s", ports[i]);
+        printf("Selected port: %s\n", chosen);
     }
-
-    mvprintw(LINES - 1, 0, "Press any key to exit...");
-    refresh();
-
-    getch();  /*wait for any keypress*/
-    endwin(); /*restore terminal*/
     return 0;
 }
