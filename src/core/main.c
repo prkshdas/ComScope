@@ -6,6 +6,7 @@
 #include "portpicker.h"
 #include "configpanel.h"
 #include "config.h"
+#include "port.h"
 
 static void handle_resize(int sig)
 {
@@ -47,9 +48,20 @@ int main(void)
     }
     endwin();
 
+    /*3. open serial port*/
+    int fd = open_serial(&cfg);
+    if (fd < 0)
+    {
+        printf("Failed to open %s\n", cfg.port);
+        return 1;
+    }
+
     /*confirmation*/
+    printf("Port opened successfully!\n");
     printf("Port    : %s\n", cfg.port);
+    printf("FD      : %d\n", fd);
     printf("Baud    : %d\n", (int)cfg.baud);
-    printf("Format  : %dN%d\n", cfg.databits, cfg.stopbits);
+
+    close_serial(fd);
     return 0;
 }
