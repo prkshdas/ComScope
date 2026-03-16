@@ -37,15 +37,15 @@ void tui_init(TermConfig *cfg)
     keypad(stdscr, TRUE);
     curs_set(0);
 
-    /* Initialize color support BEFORE creating windows */
+    /* Initialize color support - use terminal defaults */
     if (has_colors()) {
         start_color();
-        use_default_colors();  /* Use terminal's default colors as base */
+        use_default_colors();  /* CRITICAL: Use terminal defaults, not explicit colors */
         
-        /* Define color pairs for different text styles */
-        init_pair(1, COLOR_WHITE, COLOR_BLACK);      /* Normal text */
-        init_pair(2, COLOR_GREEN, COLOR_BLACK);      /* Optional: green for variety */
-        init_pair(3, COLOR_CYAN, COLOR_BLACK);       /* Optional: cyan */
+        /* Define minimal color pairs that don't override terminal background */
+        init_pair(1, COLOR_WHITE, -1);       /* White text on terminal default background */
+        init_pair(2, COLOR_GREEN, -1);       /* Green text on terminal default background */
+        init_pair(3, COLOR_CYAN, -1);        /* Cyan text on terminal default background */
     }
 
     int rows, cols;
@@ -54,10 +54,9 @@ void tui_init(TermConfig *cfg)
     pad_win = newpad(PAD_ROWS, PAD_COLS);
     scrollok(pad_win, TRUE);
     
-    /* Set default attributes for the pad */
-    wattrset(pad_win, A_NORMAL);
+    /* FIX: Don't set background color - let terminal handle it */
     if (has_colors()) {
-        wattron(pad_win, COLOR_PAIR(1));  /* Apply white on black */
+        wattron(pad_win, COLOR_PAIR(1));  /* Apply white text only (no background) */
     }
 
     status_win = newwin(1, cols, rows - 1, 0);
@@ -93,7 +92,7 @@ void tui_write(const char *buf, int len)
     getmaxyx(stdscr, rows, cols);
     int vis = visible_rows();
 
-    /* Ensure color pair is active before writing */
+    /* Ensure color pair is active - text only, no background */
     if (has_colors()) {
         wattron(pad_win, COLOR_PAIR(1));
     }
@@ -161,7 +160,7 @@ void tui_update_status(TermConfig *cfg, int connected)
     if (!status_win) return;
 
     werase(status_win);
-    wattron(status_win, A_REVERSE);
+    wattron(status_win, A_REVERSE);  /* Keep reverse for status bar - it's meant to be highlighted */
 
     int cols = 80;
     getmaxyx(status_win, cols, cols); /* harmless attempt to get width */

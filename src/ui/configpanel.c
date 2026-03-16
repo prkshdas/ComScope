@@ -27,9 +27,9 @@ static const speed_t baud_values[] = {
 int show_config(TermConfig *cfg)
 {
     int win_h = 16;
-    int win_w = 44;
+    int win_w = 65;  /* FIX: Increased from 44 to 65 for proper text display */
     int win_y = (LINES - win_h) / 2;
-    int win_x = (COLS - win_w) / 2;  /* FIX: was (COLS - win_x) */
+    int win_x = (COLS - win_w) / 2;
 
     WINDOW *win = newwin(win_h, win_w, win_y, win_x);
     keypad(win, TRUE);
@@ -55,7 +55,7 @@ int show_config(TermConfig *cfg)
         /* ── Baud rate row ── */
         if (row == 0)
             wattron(win, A_REVERSE);
-        mvwprintw(win, 4, 2, "Baud rate  : %-8s  (up/down)", baud_labels[baud_sel]);
+        mvwprintw(win, 4, 2, "Baud rate  : %-8s", baud_labels[baud_sel]);  /* FIX: Removed (up/down) */
         if (row == 0)
             wattroff(win, A_REVERSE);
 
@@ -80,7 +80,8 @@ int show_config(TermConfig *cfg)
         if (row == 3)
             wattroff(win, A_REVERSE);
 
-        mvwprintw(win, 13, 2, "Tab=next row  left/right=change  Enter=connect  q=back");
+        /* FIX: Improved instruction line with proper formatting */
+        mvwprintw(win, 13, 2, "Tab=next   left/right=change   Enter=connect   q=back");
         wrefresh(win);
 
         int ch = wgetch(win);  /* 500ms timeout prevents hang */
