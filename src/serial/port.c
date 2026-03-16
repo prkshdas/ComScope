@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
-#include <sys/ioctl.h>
 #include "port.h"
 #include "config.h"
 
@@ -30,7 +29,7 @@ int open_serial(TermConfig *cfg)
     /* save original so close_serial() can restore them */
     original_tty = tty;
 
-    /* set baud rates (cfg->baud assumed to be speed_t or mapped earlier) */
+    /* set baud rates */
     cfsetispeed(&tty, cfg->baud);
     cfsetospeed(&tty, cfg->baud);
 
@@ -49,8 +48,8 @@ int open_serial(TermConfig *cfg)
     tty.c_iflag &= ~(IXON | IXOFF | IXANY);
     tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL);
 
-    /* per-byte read behaviour: block until at least 1 byte */
-    tty.c_cc[VMIN]  = 1;
+    /* non-blocking read: immediate return even if no data */
+    tty.c_cc[VMIN]  = 0;
     tty.c_cc[VTIME] = 0;
 
     if (tcsetattr(fd, TCSANOW, &tty) < 0) {
@@ -59,10 +58,10 @@ int open_serial(TermConfig *cfg)
         return -1;
     }
 
-    /* clear NONBLOCK so read/poll interact predictably */
-    int flags = fcntl(fd, F_GETFL, 0);
-    if (flags != -1)
-        fcntl(fd, F_SETFL, flags & ~O_NONBLOCK);
+    /* CRITICAL: flush any pre-existing buffered data from the serial port */
+    tcflush(fd, TCIFLUSH);
+    usleep(100000);  /* 100ms delay to allow device to settle */
+    tcflush(fd, TCIFLUSH);  /* flush again to be sure */
 
     return fd;
 }

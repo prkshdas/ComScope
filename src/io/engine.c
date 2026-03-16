@@ -55,8 +55,8 @@ void run_engine(int serial_fd, TermConfig *cfg)
     fds[1].events = POLLIN | POLLERR | POLLHUP;
 
     while (1) {
-        /* 200 ms timeout so UI remains responsive even if serial stalls */
-        int ret = poll(fds, 2, 200);
+        /* 100 ms timeout for responsive UI and quick serial data polling */
+        int ret = poll(fds, 2, 100);
         if (ret < 0) {
             if (errno == EINTR) continue;
             perror("poll");

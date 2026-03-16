@@ -30,14 +30,28 @@ void tui_init(TermConfig *cfg)
     keypad(stdscr, TRUE);
     curs_set(0);
 
-    if (has_colors())
+    /* Initialize color support BEFORE creating windows */
+    if (has_colors()) {
         start_color();
+        use_default_colors();  /* Use terminal's default colors as base */
+        
+        /* Define color pairs for different text styles */
+        init_pair(1, COLOR_WHITE, COLOR_BLACK);      /* Normal text */
+        init_pair(2, COLOR_GREEN, COLOR_BLACK);      /* Optional: green for variety */
+        init_pair(3, COLOR_CYAN, COLOR_BLACK);       /* Optional: cyan */
+    }
 
     int rows, cols;
     getmaxyx(stdscr, rows, cols);
 
     pad_win = newpad(PAD_ROWS, PAD_COLS);
     scrollok(pad_win, TRUE);
+    
+    /* Set default attributes for the pad */
+    wattrset(pad_win, A_NORMAL);
+    if (has_colors()) {
+        wattron(pad_win, COLOR_PAIR(1));  /* Apply white on black */
+    }
 
     status_win = newwin(1, cols, rows - 1, 0);
     wrefresh(status_win);
@@ -63,6 +77,11 @@ void tui_write(const char *buf, int len)
     int rows, cols;
     getmaxyx(stdscr, rows, cols);
     int vis = visible_rows();
+
+    /* Ensure color pair is active before writing */
+    if (has_colors()) {
+        wattron(pad_win, COLOR_PAIR(1));
+    }
 
     /* write chunk using waddch (handles control chars) */
     for (int i = 0; i < len; ++i) {
