@@ -42,7 +42,7 @@ int main(void)
 
     /* 1 — pick port */
     char *port = pick_port();
-    if (!port) { endwin(); printf("Goodbye.\n"); return 0; }
+    if (!port) { endwin(); printf("quit.\n"); return 0; }
 
     /* 2 — configure */
     TermConfig cfg;
@@ -80,6 +80,6 @@ int main(void)
     }
 
     endwin();
-    printf("ComScope closed. Goodbye.\n");
+    printf("ComScope closed.\n");
     return 0;
 }
