@@ -12,7 +12,7 @@ char *pick_port(void)
 
     /*calculate a centered window: 50 wide, count+6 tall*/
     int win_h = count + 6;
-    int win_w = 50;  /* FIX: Increased from 40 to 50 for better visibility */
+    int win_w = 50; /* FIX: Increased from 40 to 50 for better visibility */
     int win_y = (LINES - win_h) / 2;
     int win_x = (COLS - win_w) / 2;
 
@@ -55,7 +55,7 @@ char *pick_port(void)
         wrefresh(win);
 
         /*handle keypresses*/
-        int ch = wgetch(win);  /* 500ms timeout prevents hang */
+        int ch = wgetch(win); /* 500ms timeout prevents hang */
 
         /* FIX: Handle timeout gracefully */
         if (ch == ERR)

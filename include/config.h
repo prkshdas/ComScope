@@ -10,7 +10,7 @@ typedef struct
     int databits;   /*5,6,7 or 8*/
     int parity;     /*0=none, 1=odd, 2=even*/
     int stopbits;
-    
+
     /* Logging features */
     int log_enabled;
     char log_path[256];

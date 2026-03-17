@@ -10,8 +10,7 @@ static const char *baud_labels[] = {
     "38400",
     "57600",
     "115200",
-    "230400"
-};
+    "230400"};
 
 static const speed_t baud_values[] = {
     B9600,
@@ -19,27 +18,22 @@ static const speed_t baud_values[] = {
     B38400,
     B57600,
     B115200,
-    B230400
-};
+    B230400};
 
 #define BAUD_COUNT 6
 
 int show_config(TermConfig *cfg)
 {
     int win_h = 16;
-    int win_w = 65;  /* FIX: Increased from 44 to 65 for proper text display */
+    int win_w = 65;
     int win_y = (LINES - win_h) / 2;
     int win_x = (COLS - win_w) / 2;
 
     WINDOW *win = newwin(win_h, win_w, win_y, win_x);
     keypad(win, TRUE);
-    /* Set non-blocking input with 500ms timeout */
     wtimeout(win, 500);
 
     int baud_sel = 4; /*default index - 115200*/
-    int data_sel = 0; /*0 = 8bit*/
-    int par_sel = 0;  /*0=None*/
-    int stop_sel = 0; /*0=1bit*/
 
     /*cursor is on row 0=baud, 1=data, 2=parity, 3=stop*/
     int row = 0;
@@ -55,7 +49,7 @@ int show_config(TermConfig *cfg)
         /* ── Baud rate row ── */
         if (row == 0)
             wattron(win, A_REVERSE);
-        mvwprintw(win, 4, 2, "Baud rate  : %-8s", baud_labels[baud_sel]);  /* FIX: Removed (up/down) */
+        mvwprintw(win, 4, 2, "Baud rate  : %-8s", baud_labels[baud_sel]);
         if (row == 0)
             wattroff(win, A_REVERSE);
 
@@ -80,18 +74,16 @@ int show_config(TermConfig *cfg)
         if (row == 3)
             wattroff(win, A_REVERSE);
 
-        /* FIX: Improved instruction line with proper formatting */
         mvwprintw(win, 13, 2, "Tab=next   left/right=change   Enter=connect   q=back");
         wrefresh(win);
 
-        int ch = wgetch(win);  /* 500ms timeout prevents hang */
+        int ch = wgetch(win);
 
-        if (ch == ERR)  /* FIX: Handle timeout gracefully */
+        if (ch == ERR)
             continue;
 
         if (ch == '\t')
         {
-            /* Tab moves between rows */
             row = (row + 1) % 4;
         }
         else if (ch == KEY_UP || ch == KEY_LEFT)
@@ -106,7 +98,6 @@ int show_config(TermConfig *cfg)
         }
         else if (ch == KEY_ENTER || ch == '\n' || ch == '\r')
         {
-            /* save into config struct and return */
             cfg->baud = baud_values[baud_sel];
             cfg->databits = 8;
             cfg->parity = 0;
@@ -117,7 +108,7 @@ int show_config(TermConfig *cfg)
         else if (ch == 'q' || ch == 'Q')
         {
             delwin(win);
-            return -1; /* go back to port picker */
+            return -1;
         }
     }
 }
