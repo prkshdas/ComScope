@@ -32,7 +32,6 @@ apps:
     plugs:
       - serial-port
       - hardware-observe
-      - udev-observe
     environment:
       TERM: xterm-256color
 
