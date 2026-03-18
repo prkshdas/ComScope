@@ -31,7 +31,6 @@ apps:
     command: bin/comscope
     plugs:
       - serial-port
-      - hardware-observe
     environment:
       TERM: xterm-256color
 
