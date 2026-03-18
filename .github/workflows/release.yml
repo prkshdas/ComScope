@@ -8,6 +8,9 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    # Add permissions so the GitHub release step can write to the repo
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
