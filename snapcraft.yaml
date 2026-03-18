@@ -17,7 +17,7 @@ description: |
   - Helpful error messages and diagnostics
 
 grade: stable
-confinement: classic
+confinement: strict
 
 issues:
   - https://github.com/prkshdas/ComScope/issues
@@ -32,12 +32,26 @@ apps:
     plugs:
       - serial-port
       - hardware-observe
+      - udev-observe
     environment:
       TERM: xterm-256color
 
 plugs:
   serial-port:
     interface: serial-port
+    # Allows the application to access serial ports
+    allowed: ["*"]
+    auto-connect: true
+  hardware-observe:
+    interface: hardware-observe
+    # Allows the application to observe hardware information
+    allowed: ["*"]
+    auto-connect: true
+  udev-observe:
+    interface: udev-observe
+    # Allows the application to observe udev events
+    allowed: ["*"]
+    auto-connect: true
 
 parts:
   comscope:
