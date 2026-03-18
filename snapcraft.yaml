@@ -49,5 +49,7 @@ parts:
     stage-packages:
       - libncurses6
       - libtinfo6
-    organize:
-      ComScope: bin/comscope
+    override-build: |
+      make
+      mkdir -p $SNAPCRAFT_PART_INSTALL/bin
+      install -m 755 ComScope $SNAPCRAFT_PART_INSTALL/bin/comscope
