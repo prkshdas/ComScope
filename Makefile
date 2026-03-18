@@ -7,7 +7,7 @@ SRCS     = src/core/main.c src/core/scanner.c \
            src/serial/port.c \
            src/features/logger.c
 
-TARGET   = comscope
+TARGET   = ComScope
 PREFIX   = /usr/local
 BINDIR   = $(PREFIX)/bin
 
