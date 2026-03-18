@@ -6,8 +6,10 @@ A lightweight, fast serial port terminal for embedded development boards on Linu
 
 ### Install from Snap Store (Recommended) 🚀
 
+Because ComScope requires access to physical serial ports on your system, it needs to be installed with the `--devmode` flag on classic Linux distributions.
+
 ```bash
-sudo snap install comscope
+sudo snap install comscope --devmode
 comscope
 ```
 
@@ -38,20 +40,18 @@ make
 
 ### Option 1: Install from Snap Store (Easiest)
 
-ComScope is available on the Snap Store for all Linux distributions.
+ComScope is available on the Snap Store for all Linux distributions. 
+*Note: To access serial ports (like `/dev/ttyUSB0` or `/dev/ttyACM0`) on classic Linux desktops, the snap must be installed in devmode.*
 
 ```bash
-# Install from Snap Store
-sudo snap install comscope
+# Install from Snap Store with devmode flag
+sudo snap install comscope --devmode
 
 # Run
 comscope
 
-# Grant serial port access (if needed)
-sudo snap connect comscope:serial-port
-
 # Update
-sudo snap refresh comscope
+sudo snap refresh comscope --devmode
 
 # Uninstall
 sudo snap remove comscope
@@ -244,14 +244,14 @@ Device responds...
 
 ### Snap Installation Issues
 
-#### "Permission denied" when opening serial port
+#### "snapd has no serial-port interface slots"
 
-**Problem**: Cannot access `/dev/ttyUSB0` or similar through snap
+**Problem**: ComScope was installed with strict confinement, preventing it from accessing the system's serial ports.
 
-**Solution:**
+**Solution:** You must reinstall the snap in developer mode to grant it access to host hardware.
 ```bash
-# Grant the snap permission to access serial ports
-sudo snap connect comscope:serial-port
+sudo snap remove comscope
+sudo snap install comscope --devmode
 ```
 
 ### Build from Source Issues
