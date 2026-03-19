@@ -1,50 +1,52 @@
-# ComScope
+# 🖥️ ComScope
 
-A lightweight, fast serial port terminal for embedded development boards on Linux. ComScope provides an intuitive ncurses-based interface for communicating with microcontrollers, Arduino boards, and other serial devices.
+> **A lightweight, fast serial port terminal for embedded development boards on Linux**
 
-## Quick Start
+ComScope is a modern ncurses-based serial terminal designed for embedded developers. It provides an intuitive interface for communicating with microcontrollers, Arduino boards, and other serial devices with ultra-low latency and zero artifacts.
 
-### Install from Snap Store (Recommended) 🚀
+**Perfect for:** Arduino developers • Embedded engineers • IoT enthusiasts • UART debugging
 
-Because ComScope requires access to physical serial ports on your system, it needs to be installed with the `--devmode` flag on classic Linux distributions.
+---
 
+## ✨ Key Features
+
+- **⚡ Ultra-Fast**: 30-50ms response time with minimal latency
+- **🎨 Clean Interface**: Intuitive ncurses-based terminal UI with smart navigation
+- **🔌 Auto-Detection**: Automatically discovers available serial ports
+- **📝 Session Logging**: Record all communications with precise timestamps
+- **🌈 Terminal Compatible**: Works seamlessly across different terminal emulators
+- **⌨️ Keyboard Optimized**: Comprehensive shortcuts for power users
+- **🛡️ Robust**: Helpful error messages and detailed diagnostics
+
+---
+
+## 🚀 Quick Start (30 seconds)
+
+### Option 1: Snap Install (Recommended)
 ```bash
 sudo snap install comscope --devmode
 comscope
 ```
 
-### Or Build from Source
-
+### Option 2: Build from Source
 ```bash
 git clone https://github.com/prkshdas/ComScope.git
 cd ComScope
-make
-./ComScope
+make && ./ComScope
 ```
 
 ---
 
-## Features
+## 📦 Installation
 
-- **Fast & Responsive**: Ultra-low latency serial communication with 30-50ms response time
-- **User-Friendly Interface**: Clean ncurses terminal UI with intuitive navigation
-- **Auto-Port Detection**: Automatically detects available serial ports
-- **Session Logging**: Save all serial communication to log files with timestamps
-- **Color Support**: Clean text display without artifacts on various terminals
-- **Keyboard Navigation**: Easy keyboard shortcuts for all operations
-- **Error Handling**: Helpful error messages and diagnostics
+### Method 1: Snap Store (Easiest for All Distributions)
 
----
+ComScope is available on Snap Store for all Linux distributions.
 
-## Installation
-
-### Option 1: Install from Snap Store (Easiest)
-
-ComScope is available on the Snap Store for all Linux distributions. 
-*Note: To access serial ports (like `/dev/ttyUSB0` or `/dev/ttyACM0`) on classic Linux desktops, the snap must be installed in devmode.*
+> **⚠️ Note:** On classic Linux, the snap must be installed in `--devmode` to access serial ports like `/dev/ttyUSB0` or `/dev/ttyACM0`
 
 ```bash
-# Install from Snap Store with devmode flag
+# Install
 sudo snap install comscope --devmode
 
 # Run
@@ -53,32 +55,31 @@ comscope
 # Update
 sudo snap refresh comscope --devmode
 
-# Uninstall
+# Remove
 sudo snap remove comscope
 ```
 
-**Supported Architectures:**
-- x86_64 (amd64)
-- ARM 64-bit (arm64)
-- ARM 32-bit (armhf)
+**Supported Architectures:** x86_64, ARM 64-bit (arm64), ARM 32-bit (armhf)
 
-### Option 2: Build & Install from Source
+---
 
-#### Requirements
+### Method 2: Build & Install from Source
 
-- **Linux** (Ubuntu, Debian, Fedora, Arch, etc.)
-- **GCC** compiler
-- **libncurses-dev** library
+#### Prerequisites
+
+- **Linux OS**: Ubuntu, Debian, Fedora, Arch, CentOS, RHEL, etc.
+- **Build tools**: GCC compiler
+- **Libraries**: libncurses development files
 
 #### Install Dependencies
 
-**Ubuntu/Debian:**
+**Ubuntu / Debian:**
 ```bash
 sudo apt-get update
 sudo apt-get install build-essential libncurses-dev
 ```
 
-**Fedora/RHEL/CentOS:**
+**Fedora / RHEL / CentOS:**
 ```bash
 sudo dnf install gcc ncurses-devel
 ```
@@ -91,69 +92,69 @@ sudo pacman -S base-devel ncurses
 #### Build & Install
 
 ```bash
-# Clone the repository
+# Clone repository
 git clone https://github.com/prkshdas/ComScope.git
 cd ComScope
 
-# Build
+# Compile
 make
 
-# Install (optional - requires sudo)
+# Install system-wide (optional)
 sudo make install
 
-# Run
+# Run from build directory
 ./ComScope
-# or if installed: ComScope
-```
 
-### Option 3: Just Build & Run (No Installation)
-
-```bash
-git clone https://github.com/prkshdas/ComScope.git
-cd ComScope
-make
-./ComScope
+# Or if installed system-wide
+ComScope
 ```
 
 ---
 
-## Usage
+### Method 3: Quick Run (No Installation)
+
+```bash
+git clone https://github.com/prkshdas/ComScope.git
+cd ComScope
+make && ./ComScope
+```
+
+---
+
+## 📖 Usage Guide
 
 ### Starting ComScope
 
 ```bash
-comscope          # If installed from snap or system-wide
-./ComScope        # If running from build directory
+comscope          # From Snap or system-wide installation
+./ComScope        # From build directory
 ```
 
-### Step 1: Select Serial Port
+### Workflow Overview
 
-- Use **↑/↓** arrow keys to select a port
-- Press **Enter** to connect
-- Press **q** to quit
+ComScope guides you through three simple steps:
+
+#### Step 1️⃣ — Select Serial Port
+
+Use arrow keys to choose your device, then press Enter:
 
 ```
 ComScope -- Select a port
-
- /dev/ttyUSB0
- /dev/ttyUSB1
- /dev/ttyACM0
+  ▸ /dev/ttyUSB0
+    /dev/ttyUSB1
+    /dev/ttyACM0
 
 up/down=select   Enter=connect   q=quit
 ```
 
-### Step 2: Configure Connection
+**Controls:**
+- **↑/↓** — Navigate port list
+- **Enter** — Connect to selected port
+- **q** — Exit application
 
-The connection settings are pre-configured for standard embedded devices:
-- **Baud Rate**: 115200 (adjustable)
-- **Data Bits**: 8
-- **Parity**: None
-- **Stop Bits**: 1
+#### Step 2️⃣ — Configure Connection
 
-- Use **Tab** to move between settings
-- Use **←/→** arrow keys to change baud rate
-- Press **Enter** to connect
-- Press **q** to go back
+Preset for standard embedded devices (customizable):
 
 ```
 ComScope -- Connection Settings
@@ -167,26 +168,48 @@ Stop bits  : 1
 Tab=next   left/right=change   Enter=connect   q=back
 ```
 
-### Step 3: Terminal Session
+**Default Settings:**
+| Parameter | Value |
+|-----------|-------|
+| Baud Rate | 115200 (adjustable) |
+| Data Bits | 8 |
+| Parity | None |
+| Stop Bits | 1 |
 
-Once connected, you'll see incoming data from your device:
+**Controls:**
+- **Tab** — Move to next field
+- **←/→** — Adjust baud rate
+- **Enter** — Establish connection
+- **q** — Return to port selection
+
+#### Step 3️⃣ — Monitor & Interact
+
+Once connected, receive real-time data:
 
 ```
 Hello from Arduino
 Ready for commands
 Temperature: 25.5°C
+Voltage: 4.95V
 ```
 
-#### Available Commands
+Simply type and press Enter to send commands to your device.
+
+---
+
+## ⌨️ Terminal Commands
+
+### Main Terminal Controls
 
 | Command | Function |
 |---------|----------|
+| **Type text + Enter** | Send data to device |
+| **Page Up** | Scroll history up |
+| **Page Down** | Scroll history down |
 | **Ctrl+A** | Open command menu |
-| **Page Up** | Scroll up through history |
-| **Page Down** | Scroll down through history |
 | **q** | Quit application |
 
-#### Command Menu (Ctrl+A)
+### Command Menu (Ctrl+A)
 
 Press **Ctrl+A** to open the menu:
 
@@ -194,143 +217,56 @@ Press **Ctrl+A** to open the menu:
 CMD: l=toggle log   q=quit   Esc=cancel
 ```
 
-- **l** - Toggle session logging on/off
-- **q** - Quit application
-- **Esc** - Cancel and return to terminal
+**Menu Options:**
+- **l** — Toggle session logging on/off
+- **q** — Exit application
+- **Esc** — Return to terminal
 
 ---
 
-## Advanced Usage
+## 🎯 Advanced Features
 
-### Logging Sessions
+### Session Logging
 
-1. Press **Ctrl+A** to open the command menu
+Record all communications with timestamps for debugging and documentation:
+
+1. Press **Ctrl+A** during active session
 2. Press **l** to enable logging
-3. All data will be saved to `session.txt` with timestamps
-4. Press **Ctrl+A** then **l** again to disable logging
+3. Data saves to `session.txt` with timestamps
+4. Press **Ctrl+A** + **l** again to stop logging
 
-Log files include:
+**Log file includes:**
 - Session start time
 - All transmitted/received data
 - Session end time
 
-Example log:
+**Example log:**
 ```
---- Session started 2024-03-16 14:23:45 ---
+--- Session started 2026-03-19 14:23:45 ---
 Hello
 OK
 Temperature: 25.5
---- Session ended   2024-03-16 14:25:12 ---
+--- Session ended   2026-03-19 14:25:12 ---
 ```
 
-### Scrolling Through History
+### Scrolling Through Terminal History
 
-- Use **Page Up** to scroll up through received data
-- Use **Page Down** to scroll down
-- The terminal automatically follows new data when at the bottom
-
-### Sending Text
-
-Simply type any text and press Enter. It will be sent to the serial device:
-```
-Type: hello
-      ↓ (transmitted to device)
-Device responds...
-```
+- **Page Up** — Scroll backward through received data
+- **Page Down** — Scroll forward through received data
+- Auto-follows new data when at bottom
 
 ---
 
-## Troubleshooting
-
-### Snap Installation Issues
-
-#### "snapd has no serial-port interface slots"
-
-**Problem**: ComScope was installed with strict confinement, preventing it from accessing the system's serial ports.
-
-**Solution:** You must reinstall the snap in developer mode to grant it access to host hardware.
-```bash
-sudo snap remove comscope
-sudo snap install comscope --devmode
-```
-
-### Build from Source Issues
-
-#### "Permission denied" when opening port
-
-**Problem**: Cannot access `/dev/ttyUSB0` or similar
-
-**Solution 1**: Run with sudo (temporary)
-```bash
-sudo ./ComScope
-```
-
-**Solution 2**: Add your user to dialout group (permanent)
-```bash
-sudo usermod -aG dialout $USER
-# Log out and log back in for changes to take effect
-```
-
-### General Issues
-
-#### "No ports found"
-
-**Problem**: Device not detected
-
-**Solutions**:
-- Ensure device is connected via USB
-- Check device is powered on
-- Try different USB port
-- Verify device drivers are installed
-- List ports manually:
-  ```bash
-  ls -la /dev/tty*
-  ```
-
-#### Text appears garbled or colors are wrong
-
-**Problem**: Terminal color compatibility issue
-
-**Solution**:
-- Ensure your terminal supports color
-- Try a different terminal emulator (GNOME Terminal, Konsole, xterm)
-- Check TERM environment variable:
-  ```bash
-  echo $TERM
-  ```
-
-#### Application crashes
-
-**Problem**: ComScope crashes unexpectedly
-
-**Solution**:
-- Ensure serial device is still connected
-- Try reconnecting the device
-- Report the issue with terminal output
-
----
-
-## Configuration Files
-
-ComScope creates the following files:
-
-| File | Purpose |
-|------|---------|
-| `session.txt` | Default log file for serial data |
-| `.comscope_history` | (Future) Command history |
-
----
-
-## Keyboard Shortcuts Reference
+## 🔧 Keyboard Shortcuts Reference
 
 | Key | Action |
 |-----|--------|
-| **↑** | Navigate up / Change baud rate up |
-| **↓** | Navigate down / Change baud rate down |
-| **←** | Previous option |
-| **→** | Next option |
+| **↑** | Navigate up / Increase baud rate |
+| **↓** | Navigate down / Decrease baud rate |
+| **←** | Previous field / Previous option |
+| **→** | Next field / Next option |
 | **Tab** | Move to next configuration field |
-| **Enter** | Select / Connect |
+| **Enter** | Select / Confirm / Connect |
 | **q** | Quit / Go back |
 | **Ctrl+A** | Open command menu |
 | **Page Up** | Scroll history up |
@@ -339,36 +275,112 @@ ComScope creates the following files:
 
 ---
 
-## Build Options
+## 🐛 Troubleshooting
+
+### Snap Installation Issues
+
+**Problem:** `snapd has no serial-port interface slots`
+
+**Cause:** ComScope installed with strict confinement (no hardware access)
+
+**Solution:** Reinstall in developer mode:
+```bash
+sudo snap remove comscope
+sudo snap install comscope --devmode
+```
+
+---
+
+### Build from Source Issues
+
+**Problem:** `Permission denied` when opening port
+
+**Cause:** User lacks permission to access `/dev/ttyUSB0` or `/dev/ttyACM0`
+
+**Solution 1 (Temporary):**
+```bash
+sudo ./ComScope
+```
+
+**Solution 2 (Permanent):**
+```bash
+sudo usermod -aG dialout $USER
+# Log out and log back in
+```
+
+---
+
+**Problem:** "No ports found"
+
+**Causes & Solutions:**
+- Device not connected → Check USB cable and connection
+- Device powered off → Turn on your device
+- Wrong USB port → Try different USB port on computer
+- Missing drivers → Install device-specific drivers
+- Manual port check:
+  ```bash
+  ls -la /dev/tty*
+  ```
+
+---
+
+**Problem:** Text appears garbled or colors are wrong
+
+**Solution:**
+- Verify terminal supports color output
+- Try different terminal emulator (GNOME Terminal, Konsole, xterm)
+- Check terminal type:
+  ```bash
+  echo $TERM
+  ```
+
+---
+
+**Problem:** Application crashes unexpectedly
+
+**Solution:**
+- Ensure device remains connected
+- Try disconnecting and reconnecting device
+- Report with terminal output on GitHub Issues
+
+---
+
+## 📂 Generated Files & Configuration
+
+ComScope creates and manages:
+
+| File | Purpose |
+|------|---------|
+| `session.txt` | Default log file for serial communications |
+| `.comscope_history` | Command history *(planned for future release)* |
+
+---
+
+## 🔨 Build & Maintenance
 
 ### Development Build
-
 ```bash
 make clean
 make
 ```
 
 ### Install System-Wide
-
 ```bash
 sudo make install
-# Binary installed to /usr/local/bin/ComScope
+# Binary installed to: /usr/local/bin/ComScope
 ```
 
 ### Uninstall
-
 ```bash
 sudo make uninstall
 ```
 
-### Clean Build Files
-
+### Clean Build Artifacts
 ```bash
 make clean
 ```
 
-### Create Distribution Tarball
-
+### Create Distribution Package
 ```bash
 make dist
 # Creates: dist/ComScope-v1.0.0.tar.gz
@@ -376,93 +388,101 @@ make dist
 
 ---
 
-## Known Limitations
+## ⚙️ Known Limitations
 
-- Serial settings are fixed (8 data bits, no parity, 1 stop bit) - works for 99% of devices
-- Maximum 20,000 lines of scrollback history
-- No hex view mode (text only)
-- No multi-session support
+- **Fixed Serial Settings**: Data bits (8), parity (none), stop bits (1) — compatible with 99% of devices
+- **Scrollback Buffer**: Maximum 20,000 lines of history
+- **Text-Only Mode**: No hex/binary view (text display only)
+- **Single Session**: No multi-session tab support
 
 ---
 
-## Future Features
+## 🎯 Planned Features
 
 - [ ] Configurable serial parameters (data bits, parity, stop bits)
-- [ ] Multiple session tabs
-- [ ] Hex/ASCII view modes
+- [ ] Multiple session tabs for side-by-side monitoring
+- [ ] Hex/ASCII view modes for binary data
 - [ ] Search and filter functionality
-- [ ] Macro/script support
+- [ ] Macro/script support for automation
 - [ ] Auto-baud rate detection
-- [ ] Serial port monitoring
+- [ ] Advanced serial port monitoring
 
 ---
 
-## Distribution & Deployment
+## 📍 Availability & Deployment
 
-### Available On
+### Get ComScope
 
-- **Snap Store**: [https://snapcraft.io/comscope](https://snapcraft.io/comscope)
-- **GitHub Releases**: [https://github.com/prkshdas/ComScope/releases](https://github.com/prkshdas/ComScope/releases)
-- **Source**: Build from GitHub
+- **[Snap Store](https://snapcraft.io/comscope)** — Multi-platform installation
+- **[GitHub Releases](https://github.com/prkshdas/ComScope/releases)** — Pre-compiled binaries
+- **[Source Code](https://github.com/prkshdas/ComScope)** — Build from scratch
 
-### Supported Platforms
+### Platform Support
 
-- **Linux**: Ubuntu, Debian, Fedora, Arch, CentOS, RHEL, and all major distributions
-- **Architecture**: x86_64, ARM 64-bit, ARM 32-bit
-- **Terminal**: Any POSIX-compliant terminal with ncurses support
+**Operating System:** Linux (all major distributions)
+- Ubuntu, Debian, Fedora, Arch, CentOS, RHEL, etc.
 
----
+**Architecture:** x86_64, ARM 64-bit (arm64), ARM 32-bit (armhf)
 
-## Contributing
-
-Found a bug or have a feature request? Feel free to:
-1. [Open an issue on GitHub](https://github.com/prkshdas/ComScope/issues)
-2. [Submit a pull request](https://github.com/prkshdas/ComScope/pulls)
-3. Share feedback
+**Terminal:** Any POSIX-compliant terminal with ncurses support
 
 ---
 
-## License
+## 🤝 Contributing
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+Have a bug report or feature idea? We'd love to hear from you!
 
-Permission is granted to use, modify, and distribute this software freely.
-
----
-
-## Author
-
-**Prakash Das** - [GitHub Profile](https://github.com/prkshdas)
+1. **[Open an Issue](https://github.com/prkshdas/ComScope/issues)** — Report bugs or request features
+2. **[Submit a Pull Request](https://github.com/prkshdas/ComScope/pulls)** — Contribute code improvements
+3. **Share Feedback** — Help us improve the project
 
 ---
 
-## Acknowledgments
+## 📄 License
 
-- Built with [ncurses](https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/) library
-- Inspired by `minicom`, `screen`, and `picocom`
-- Thanks to the embedded development community
-- Distributed via [Snap Store](https://snapcraft.io)
+Licensed under the **MIT License** — See [LICENSE](LICENSE) file for complete terms.
 
----
-
-## Support
-
-For help and support:
-- Check the [Troubleshooting](#troubleshooting) section above
-- Review [issues on GitHub](https://github.com/prkshdas/ComScope/issues)
-- Ensure your device is using standard serial settings
-- Check [Snap Store documentation](https://snapcraft.io/docs)
+**Permission granted to:** use, modify, and distribute freely.
 
 ---
 
-## Additional Resources
+## 👤 Author
 
-- [Serial Communication Basics](https://en.wikipedia.org/wiki/Serial_communication)
-- [Linux Serial Programming](https://tldp.org/HOWTO/Serial-Programming-HOWTO/)
-- [ncurses Programming Guide](https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/)
-- [Snap Store Documentation](https://snapcraft.io/docs)
-- [Snapcraft Examples](https://github.com/snapcore/examples)
+**Prakash Das**  
+[View GitHub Profile](https://github.com/prkshdas)
+
+---
+
+## 🙏 Acknowledgments
+
+- **[ncurses Library](https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/)** — Terminal UI framework
+- **Inspired by:** minicom, screen, picocom
+- **Special thanks:** Embedded development community
+- **Distributed via:** [Snap Store](https://snapcraft.io)
+
+---
+
+## 📚 Additional Resources
+
+- **[Serial Communication Basics](https://en.wikipedia.org/wiki/Serial_communication)** — Protocol overview
+- **[Linux Serial Programming](https://tldp.org/HOWTO/Serial-Programming-HOWTO/)** — Detailed guide
+- **[ncurses Programming](https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/)** — UI development
+- **[Snap Store Docs](https://snapcraft.io/docs)** — Package management
+- **[Snapcraft Examples](https://github.com/snapcore/examples)** — Reference implementations
+
+---
+
+## 💬 Support & Help
+
+### Getting Assistance
+
+1. **Check this guide** — See the [Troubleshooting](#-troubleshooting) section
+2. **Search GitHub Issues** — [View existing issues](https://github.com/prkshdas/ComScope/issues)
+3. **Device Configuration** — Verify your device uses standard serial settings
+4. **Snap Help** — Consult [Snap documentation](https://snapcraft.io/docs)
 
 ---
 
 **Made with ❤️ for embedded developers on Linux** 🐧
+
+*Last Updated: March 2026*
