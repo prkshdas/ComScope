@@ -44,7 +44,7 @@
 
 static void handle_command_mode(TermConfig *cfg, int serial_fd)
 {
-    (void)serial_fd; /* FIX: Mark as intentionally unused */
+    (void)serial_fd;
 
     tui_update_status(cfg, 1);
 
