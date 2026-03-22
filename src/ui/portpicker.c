@@ -1,21 +1,21 @@
 /*
  * ComScope - Serial Port Terminal for Embedded Development
  * Copyright (c) 2026 Prakash Das
- * 
+ *
  * This file is part of ComScope.
  * ComScope is free software: you can redistribute it and/or modify
  * it under the terms of the MIT License.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -48,7 +48,7 @@ char *pick_port(void)
 
     WINDOW *win = newwin(win_h, win_w, win_y, win_x);
     keypad(win, TRUE); /*enable arrow key on this window*/
-    wtimeout(win, 500);
+    wtimeout(win, 300);
 
     int selected = 0; /*currently highlighted row*/
 
@@ -84,10 +84,45 @@ char *pick_port(void)
         wrefresh(win);
 
         /*handle keypresses*/
-        int ch = wgetch(win); /* 500ms timeout prevents hang */
+        int ch = wgetch(win); /* 300ms timeout prevents hang */
 
         if (ch == ERR)
+        {
+            /*Adding temporary ports array*/
+            static char new_ports[MAX_PORTS][270];
+            int new_count = scan_ports(new_ports, MAX_PORTS);
+
+            int changed = (new_count != count);
+            if (!changed)
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    if (strcmp(ports[i], new_ports[i]) != 0)
+                    {
+                        changed = 1;
+                        break;
+                    }
+                }
+            }
+            if (changed)
+            {
+                memcpy(ports, new_ports, sizeof(ports));
+                count = new_count;
+
+                if (count == 0)
+                    selected = 0;
+                else if (selected >= count)
+                    selected = count - 1;
+
+                delwin(win);
+                win_h = (count > 0 ? count : 1) + 6;
+                win_y = (LINES - win_h) / 2;
+                win = newwin(win_h, win_w, win_y, win_x);
+                keypad(win, TRUE);
+                wtimeout(win, 300);
+            }
             continue;
+        }
 
         if (ch == KEY_UP)
         {
