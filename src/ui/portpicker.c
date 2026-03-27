@@ -48,7 +48,7 @@ char *pick_port(void)
 
     WINDOW *win = newwin(win_h, win_w, win_y, win_x);
     keypad(win, TRUE); /*enable arrow key on this window*/
-    wtimeout(win, 300);
+    wtimeout(win, 100);
 
     int selected = 0; /*currently highlighted row*/
 
@@ -106,6 +106,10 @@ char *pick_port(void)
             }
             if (changed)
             {
+                /* Clear the old window from screen completely */
+                erase();
+                refresh();
+
                 memcpy(ports, new_ports, sizeof(ports));
                 count = new_count;
 
@@ -119,7 +123,10 @@ char *pick_port(void)
                 win_y = (LINES - win_h) / 2;
                 win = newwin(win_h, win_w, win_y, win_x);
                 keypad(win, TRUE);
-                wtimeout(win, 300);
+                wtimeout(win, 100);
+
+                clearok(win, TRUE);
+                touchwin(win);
             }
             continue;
         }
