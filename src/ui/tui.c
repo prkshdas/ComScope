@@ -61,11 +61,11 @@ void tui_init(TermConfig *cfg)
 {
     (void)cfg;
 
-    initscr();
-    raw();
-    noecho();
-    keypad(stdscr, TRUE);
-    curs_set(0);
+    int rows, cols;
+    getmaxyx(stdscr, rows, cols);
+
+    pad_win = newpad(PAD_ROWS, PAD_COLS);
+    scrollok(pad_win, TRUE);
 
     if (has_colors()) {
         start_color();
@@ -74,20 +74,17 @@ void tui_init(TermConfig *cfg)
         init_pair(1, COLOR_WHITE, -1);
         init_pair(2, COLOR_GREEN, -1);
         init_pair(3, COLOR_CYAN, -1);
-    }
 
-    int rows, cols;
-    getmaxyx(stdscr, rows, cols);
-
-    pad_win = newpad(PAD_ROWS, PAD_COLS);
-    scrollok(pad_win, TRUE);
-    
-    if (has_colors()) {
         wattron(pad_win, COLOR_PAIR(1));
     }
 
     status_win = newwin(1, cols, rows - 1, 0);
     keypad(status_win, TRUE);
+
+ /* Initialize display with first refresh */
+    int last_display_row = (rows >= 2) ? (rows - 2) : 0;
+    prefresh(pad_win, 0, 0, 0, 0, last_display_row, cols - 1);
+
     wrefresh(status_win);
     
     timeout(input_timeout);
@@ -97,7 +94,6 @@ void tui_destroy(void)
 {
     if (status_win) delwin(status_win);
     if (pad_win) delwin(pad_win);
-    endwin();
 }
 
 int tui_get_char(void)

@@ -49,10 +49,13 @@
  */
 static TermConfig *g_cfg = NULL;
 static int g_connected = 0;
+static int ncurses_initialized = 0;
 
 static void handle_resize(int sig)
 {
     (void)sig;
+    if (!ncurses_initialized) return;
+
     endwin();
     refresh(); /* re-enters curses mode; LINES and COLS are updated here */
     clear();
@@ -70,6 +73,7 @@ int main(void)
     noecho();
     keypad(stdscr, TRUE);
     curs_set(0);
+    ncurses_initialized = 1;
 
     char *port = NULL;
     int config_done = 0;
@@ -82,6 +86,7 @@ int main(void)
         if (!port)
         {
             endwin();
+            ncurses_initialized = 0;
             printf("quit.\n");
             return 0; /* User pressed q at port picker — exit application */
         }
@@ -110,6 +115,7 @@ int main(void)
             if (fd < 0)
             {
                 endwin();
+                ncurses_initialized = 0;
                 printf("Failed to open %s\n", cfg.port);
                 printf("Tip: sudo usermod -aG dialout $USER\n");
                 return 1;
@@ -122,6 +128,7 @@ int main(void)
 
             /* 5 — clean up */
             g_cfg = NULL;
+            g_connected = 0;
             close_serial(fd);
 
             if (logger_active())
@@ -130,6 +137,7 @@ int main(void)
             }
 
             endwin();
+            ncurses_initialized = 0;
             printf("ComScope closed.\n");
 
             const char *log_dir = logger_get_log_dir();
