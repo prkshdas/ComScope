@@ -79,6 +79,23 @@ static void handle_command_mode(TermConfig *cfg, int serial_fd)
     tui_update_status(cfg, 1);
 }
 
+static void format_hex(const char *in, int len, char *out, int out_size)
+{
+    int pos = 0;
+
+    for (int i = 0; i < len && pos < out_size - 4; i++)
+    {
+	 pos += snprintf(out + pos, out_size - pos, "%02X", (unsigned char)in[i]);
+    }
+
+    if (pos < out_size - 1)
+    {
+	 out[pos++] = '\n';
+    }
+
+    out[pos] = '\0';
+}
+
 void run_engine(int serial_fd, TermConfig *cfg)
 {
     tui_init(cfg);
