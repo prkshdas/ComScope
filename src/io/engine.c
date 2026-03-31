@@ -85,7 +85,7 @@ static void format_hex(const char *in, int len, char *out, int out_size)
 
     for (int i = 0; i < len && pos < out_size - 4; i++)
     {
-	 pos += snprintf(out + pos, out_size - pos, "%02X", (unsigned char)in[i]);
+	 pos += snprintf(out + pos, out_size - pos, "%02X ", (unsigned char)in[i]);
     }
 
     if (pos < out_size - 1)
