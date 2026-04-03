@@ -173,6 +173,7 @@ int main(void)
             endwin();
             ncurses_initialized = 0;
             printf("ComScope closed.\n");
+            printf("Thanks for using -- ComScope\n");
 
             const char *log_dir = logger_get_log_dir();
             if (log_dir != NULL)
@@ -180,10 +181,6 @@ int main(void)
                 if (cfg.log_enabled || logger_active())
                 {
                     printf("Session logs saved to: %s\n", log_dir);
-                }
-                else
-                {
-                    printf("Thanks for using - ComScope\n");
                 }
             }
         }
