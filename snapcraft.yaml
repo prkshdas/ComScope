@@ -1,6 +1,6 @@
 name: comscope
 base: core22
-version: '1.0.1'
+version: '1.0.2'
 summary: Serial port terminal for embedded development boards on Linux
 description: |
   ComScope is a lightweight, fast serial port terminal designed for embedded 
@@ -8,13 +8,14 @@ description: |
   communicating with microcontrollers, Arduino boards, and other serial devices.
   
   Features:
-  - Ultra-low latency serial communication (30-50ms response time)
+  - Low latency serial communication
   - Clean ncurses terminal UI with intuitive navigation
-  - Auto-port detection for available serial ports
+  - Auto-port and baudrate detection for available serial ports
+  - ASCII to Hex and Hex to ASCII toggle mode
+  - Pause/Resume Output
   - Session logging with timestamps
   - Color support for various terminals
   - Easy keyboard navigation
-  - Helpful error messages and diagnostics
 
 grade: stable
 confinement: strict
