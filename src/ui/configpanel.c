@@ -63,8 +63,11 @@ int show_config(TermConfig *cfg)
     keypad(win, TRUE);
     wtimeout(win, 500);
 
-    int baud_sel = 4; /*default index - 115200*/
-    cfg->baud_index = baud_sel;
+    int baud_sel = cfg->baud_index;
+    if (baud_sel < 0 || baud_sel > 5)
+    {
+        baud_sel = 4;
+    }
 
     /*cursor is on row 0=baud, 1=data, 2=parity, 3=stop*/
     int row = 0;

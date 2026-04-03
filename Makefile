@@ -6,7 +6,8 @@ SRCS     = src/core/main.c src/core/scanner.c \
            src/io/engine.c \
            src/serial/port.c \
            src/features/logger.c \
-		   src/utils/ring_buffer.c
+		   src/utils/ring_buffer.c\
+		   src/features/autobaud.c
 
 TARGET   = ComScope
 PREFIX   = /usr/local

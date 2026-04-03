@@ -40,6 +40,7 @@
 #include "engine.h"
 #include "logger.h"
 #include "tui.h"
+#include "autobaud.h"
 
 /*
  * Globals exposed to the SIGWINCH handler so it can rebuild the TUI at the
@@ -54,7 +55,8 @@ static int ncurses_initialized = 0;
 static void handle_resize(int sig)
 {
     (void)sig;
-    if (!ncurses_initialized) return;
+    if (!ncurses_initialized)
+        return;
 
     endwin();
     refresh(); /* re-enters curses mode; LINES and COLS are updated here */
@@ -95,6 +97,38 @@ int main(void)
         TermConfig cfg;
         memset(&cfg, 0, sizeof(cfg));
         strncpy(cfg.port, port, sizeof(cfg.port) - 1);
+
+        /* --- auto baudrate detection pop-up --- */
+        int rows, cols;
+        getmaxyx(stdscr, rows, cols);
+        WINDOW *det_win = newwin(5, 50, (rows - 5) / 2, (cols - 50) / 2);
+        box(det_win, 0, 0);
+        mvwprintw(det_win, 2, 2, "Auto-detecting baud rate for %s...", port);
+        wrefresh(det_win);
+
+        /* Run the detection */
+        int detected_baud = detect_baudrate(port);
+
+        /* Clean up the popup */
+        delwin(det_win);
+        erase();
+        refresh();
+
+        /* Map detected baud rate to the config index */
+        cfg.baud_index = 4; /* Default to 115200 */
+        if (detected_baud == 9600)
+            cfg.baud_index = 0;
+        else if (detected_baud == 19200)
+            cfg.baud_index = 1;
+        else if (detected_baud == 38400)
+            cfg.baud_index = 2;
+        else if (detected_baud == 57600)
+            cfg.baud_index = 3;
+        else if (detected_baud == 115200)
+            cfg.baud_index = 4;
+        else if (detected_baud == 230400)
+            cfg.baud_index = 5;
+        /* -------------------------------- */
 
         /* Logging disabled by default */
         strncpy(cfg.log_path, "", sizeof(cfg.log_path) - 1);
