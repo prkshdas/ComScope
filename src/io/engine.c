@@ -60,6 +60,13 @@ static int g_paused = 0;  // Pause state: 0 = running, 1 = paused
 
 #define CMD_ESCAPE 0x01  // Ctrl+A
 
+typedef enum
+{
+    DISPLAY_MODE_RAW = 0,
+    DISPLAY_MODE_HEX,
+    DISPLAY_MODE_HEX_ASCII
+} display_mode_t;
+
 /* Toggle pause/resume state - can be called from main loop */
 static void toggle_pause(void)
 {
@@ -117,7 +124,36 @@ static void format_hex(const char *in, int len, char *out, int out_size)
     out[pos] = '\0';
 }
 
-static void process_serial_input(int serial_fd, int hex_mode)
+static void format_hex_ascii(const char *in, int len, char *out, int out_size)
+{
+    int pos = 0;
+
+    for (int i = 0; i < len && pos < out_size - 4; i++)
+    {
+        pos += snprintf(out + pos, out_size - pos, "%02X ", (unsigned char)in[i]);
+    }
+
+    if (pos < out_size - 3)
+    {
+        out[pos++] = ' ';
+        out[pos++] = ' ';
+    }
+
+    for (int i = 0; i < len && pos < out_size - 2; i++)
+    {
+        unsigned char c = (unsigned char)in[i];
+        out[pos++] = isprint(c) ? (char)c : '.';
+    }
+
+    if (pos < out_size - 1)
+    {
+        out[pos++] = '\n';
+    }
+
+    out[pos] = '\0';
+}
+
+static void process_serial_input(int serial_fd, display_mode_t display_mode)
 {
     uint8_t *write_ptr;
     size_t available;
@@ -140,7 +176,7 @@ static void process_serial_input(int serial_fd, int hex_mode)
             ring_buff_advance_write(&g_ring_buf, (size_t)n);
             total_read += (int)n;
             
-            if (logger_active() && !hex_mode && !g_paused) {
+            if (logger_active() && display_mode == DISPLAY_MODE_RAW && !g_paused) {
                 logger_write((const char *)write_ptr, (int)n);
             }
         } else if (n == 0) {
@@ -154,13 +190,13 @@ static void process_serial_input(int serial_fd, int hex_mode)
     }
 }
 
-static void flush_display_batch(TermConfig *cfg, int hex_mode)
+static void flush_display_batch(TermConfig *cfg, display_mode_t display_mode)
 {
     // Skip flushing if paused - don't write to display or log
     if (g_paused) return;
 
     if (g_display_batch_len > 0) {
-        if (hex_mode) {
+        if (display_mode == DISPLAY_MODE_HEX) {
             // In hex mode, format the batch before display
             char hex_buf[DISPLAY_BATCH_SIZE * 4];
             format_hex((const char *)g_display_batch, g_display_batch_len, hex_buf, sizeof(hex_buf));
@@ -169,7 +205,21 @@ static void flush_display_batch(TermConfig *cfg, int hex_mode)
             if (cfg->log_enabled) {
                 logger_write(hex_buf, hex_len);
             }
-        } else {
+        } 
+	else if (display_mode == DISPLAY_MODE_HEX_ASCII) 
+	{
+            // In hex mode, format the batch before display
+            char hex_ascii_buf[DISPLAY_BATCH_SIZE * 5];
+            format_hex_ascii((const char *)g_display_batch, g_display_batch_len, hex_ascii_buf, sizeof(hex_ascii_buf));
+            int hex_ascii_len = (int)strlen(hex_ascii_buf);
+            tui_write(hex_ascii_buf, hex_ascii_len);
+            if (cfg->log_enabled) {
+                logger_write(hex_ascii_buf, hex_ascii_len);
+            }
+	
+	} 
+	else 
+	{
             tui_write((const char *)g_display_batch, g_display_batch_len);
         }
         g_display_batch_len = 0;
@@ -184,7 +234,7 @@ static void flush_display_batch(TermConfig *cfg, int hex_mode)
     }
 }
 
-static void drain_ring_buffer(TermConfig *cfg, int hex_mode)
+static void drain_ring_buffer(TermConfig *cfg, display_mode_t display_mode)
 {
     // Skip draining if paused - data stays in ring buffer
     if (g_paused) return;
@@ -204,11 +254,11 @@ static void drain_ring_buffer(TermConfig *cfg, int hex_mode)
         ring_buff_advance_read(&g_ring_buf, to_copy);
         
         if (g_display_batch_len >= DISPLAY_BATCH_SIZE / 2) {
-            flush_display_batch(cfg, hex_mode);
+            flush_display_batch(cfg, display_mode);
         }
     }
     
-    flush_display_batch(cfg, hex_mode);
+    flush_display_batch(cfg, display_mode);
 }
 
 static void handle_command_mode(TermConfig *cfg, int serial_fd)
@@ -263,7 +313,7 @@ void run_engine(int serial_fd, TermConfig *cfg)
     fds[1].events = POLLIN | POLLERR | POLLHUP;
     
     int running = 1;
-    int hex_mode = 0;  // Hex display mode toggle
+    display_mode_t display_mode = DISPLAY_MODE_RAW;  // Changed from int hex_mode to enum based mode toggles
     
     while (running) {
         if (g_serial_out_len > 0) {
@@ -296,8 +346,8 @@ void run_engine(int serial_fd, TermConfig *cfg)
             } else if (ch == 'q' || ch == 'Q') {
                 running = 0;
             } else if (ch == 'h' || ch == 'H') {
-                // Toggle between raw and hex display modes
-                hex_mode = !hex_mode;
+                // Cycle display mode: RAW -> HEX -> HEX-ASCII -> RAW
+                display_mode = (display_mode + 1) % 3;
             } else if (ch == 'p' || ch == 'P') {
                 // Toggle pause/resume
                 toggle_pause();
@@ -319,7 +369,8 @@ void run_engine(int serial_fd, TermConfig *cfg)
         
         // Serial input (drain to ring buffer)
         if (fds[1].revents & POLLIN) {
-            process_serial_input(serial_fd, hex_mode);
+	    // Changed from hex_mode to display_mode_t enum to switch between RAW -> HEX -> HEX+ASCII -> RAW
+            process_serial_input(serial_fd, display_mode);
         }
         
         // Serial errors
@@ -329,7 +380,8 @@ void run_engine(int serial_fd, TermConfig *cfg)
         }
         
         // Drain ring buffer to display (throttled internally)
-        drain_ring_buffer(cfg, hex_mode);
+	// Changed from hex_mode to display_mode_t enum to switch between RAW -> HEX -> HEX+ASCII -> RAW
+        drain_ring_buffer(cfg, display_mode);
         
         // Periodic display update - also respect pause state
         if (!g_paused) {
@@ -343,7 +395,8 @@ void run_engine(int serial_fd, TermConfig *cfg)
     }
     
     // Final flush
-    drain_ring_buffer(cfg, hex_mode);
+    // Changed from hex_mode to display_mode_t enum to switch between RAW -> HEX -> HEX+ASCII -> RAW
+    drain_ring_buffer(cfg, display_mode);
     tui_refresh();
     
     tui_destroy();
