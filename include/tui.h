@@ -15,8 +15,9 @@ extern WINDOW *status_win;
 void tui_init(TermConfig *cfg);
 void tui_destroy(void);
 void tui_write(const char *buf, int len);
-void tui_refresh(void);  // Added
+void tui_refresh(void);
 void tui_scroll(int direction);
+void tui_scroll_lines(int lines);
 void tui_update_status(TermConfig *cfg, int connected);
 void tui_resize(TermConfig *cfg, int connected);
 int tui_get_char(void);

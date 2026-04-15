@@ -83,6 +83,8 @@ void tui_init(TermConfig *cfg)
     (void)cfg;
     int rows, cols;
     getmaxyx(stdscr, rows, cols);
+    keypad(stdscr, TRUE);
+    mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
 
     /* Allocate circular scrollback buffer */
     sb.lines = calloc(SCROLLBACK_LINES, sizeof(char *));
@@ -235,25 +237,26 @@ void tui_refresh(void)
 
 void tui_scroll(int direction)
 {
-    auto_scroll = 0;  // Disable auto-scroll when user scrolls
-    
     int rows = getmaxy(stdscr);
     int page_size = rows / 2;  // Half page scroll
-    
-    if (direction > 0) {  // Page Up (scroll back)
-        scroll_offset += page_size;
-        if (scroll_offset > sb.count - (rows - 1)) {
-            scroll_offset = sb.count - (rows - 1);
-        }
-        if (scroll_offset < 0) scroll_offset = 0;
-    } else {  // Page Down (scroll forward)
-        scroll_offset -= page_size;
-        if (scroll_offset <= 0) {
-            scroll_offset = 0;
-            auto_scroll = 1;  // Re-enable auto-scroll at bottom
-        }
+    if (page_size < 1) page_size = 1;
+    tui_scroll_lines((direction > 0) ? page_size : -page_size);
+}
+
+void tui_scroll_lines(int lines)
+{
+    int rows = getmaxy(stdscr);
+    int max_offset = sb.count - (rows - 1);
+    if (max_offset < 0) max_offset = 0;
+
+    auto_scroll = 0;  // Disable auto-scroll when user scrolls
+    scroll_offset += lines;
+    if (scroll_offset > max_offset) scroll_offset = max_offset;
+    if (scroll_offset <= 0) {
+        scroll_offset = 0;
+        auto_scroll = 1;  // Re-enable auto-scroll at bottom
     }
-    
+
     tui_refresh();
     tui_update_status(NULL, 1);  // Refresh status to show scroll position
 }
