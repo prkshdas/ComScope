@@ -48,6 +48,12 @@
 #define DISPLAY_BATCH_SIZE 2048    // Batch display writes
 #define BUF_SIZE 512               // For hex mode formatting
 
+#define FORMAT_LINE_READ_CYCLE_MULTIPLIER 2
+#define MAX_FORMAT_LINE_BYTES (MAX_READ_PER_CYCLE * FORMAT_LINE_READ_CYCLE_MULTIPLIER) // Keep enough room when a payload line spans multiple reads
+#define HEX_ASCII_OUT_MULTIPLIER 4                                                     // "HH " + optional printable ASCII per byte
+#define HEX_ASCII_OUT_PADDING 8                                                        // Separator + trailing newline + safety margin
+#define HEX_ASCII_LINE_BUF_SIZE ((MAX_FORMAT_LINE_BYTES * HEX_ASCII_OUT_MULTIPLIER) + HEX_ASCII_OUT_PADDING)
+
 static ring_buff_t g_ring_buf;
 static uint8_t g_ring_buffer_storage[RING_BUF_SIZE];
 static char g_serial_out_buf[SERIAL_OUT_BUF_SIZE];
@@ -55,6 +61,11 @@ static int g_serial_out_len = 0;
 static uint8_t g_display_batch[DISPLAY_BATCH_SIZE];
 static int g_display_batch_len = 0;
 static struct timespec last_display_update = {0, 0};
+
+static uint8_t g_hex_line[MAX_FORMAT_LINE_BYTES];
+static int g_hex_line_len = 0;
+static uint8_t g_hex_ascii_line[MAX_FORMAT_LINE_BYTES];
+static int g_hex_ascii_line_len = 0;
 
 static int g_paused = 0; // Pause state: 0 = running, 1 = paused
 
@@ -114,41 +125,73 @@ static void queue_serial_output(int fd, char c)
     flush_serial_output(fd);
 }
 
+static int append_hex_line(const uint8_t *line, int len, char *out, int out_size, int pos)
+{
+    for (int i = 0; i < len && pos < out_size - 4; i++)
+    {
+        pos += snprintf(out + pos, out_size - pos, "%02X ", line[i]);
+    }
+    if (pos < out_size - 1)
+    {
+        out[pos++] = '\n';
+    }
+    return pos;
+}
+
+static int flush_hex_line_to_output(char *out, int out_size, int pos)
+{
+    if (g_hex_line_len == 0)
+    {
+        return pos;
+    }
+    pos = append_hex_line(g_hex_line, g_hex_line_len, out, out_size, pos);
+    g_hex_line_len = 0;
+    return pos;
+}
+
 static void format_hex(const char *in, int len, char *out, int out_size)
 {
     int pos = 0;
 
     for (int i = 0; i < len && pos < out_size - 4; i++)
     {
-        pos += snprintf(out + pos, out_size - pos, "%02X ", (unsigned char)in[i]);
-    }
+        if (g_hex_line_len == MAX_FORMAT_LINE_BYTES)
+        {
+            pos = flush_hex_line_to_output(out, out_size, pos);
+        }
 
-    if (pos < out_size - 1)
-    {
-        out[pos++] = '\n';
+        g_hex_line[g_hex_line_len++] = (uint8_t)in[i];
+
+        if (in[i] == '\r' || in[i] == '\n' || g_hex_line_len == MAX_FORMAT_LINE_BYTES)
+        {
+            pos = flush_hex_line_to_output(out, out_size, pos);
+        }
     }
 
     out[pos] = '\0';
 }
 
-static void format_hex_ascii(const char *in, int len, char *out, int out_size)
+static int append_hex_ascii_line(const uint8_t *line, int len, char *out, int out_size, int pos)
 {
-    int pos = 0;
-
     for (int i = 0; i < len && pos < out_size - 4; i++)
     {
-        pos += snprintf(out + pos, out_size - pos, "%02X ", (unsigned char)in[i]);
+        pos += snprintf(out + pos, out_size - pos, "%02X ", line[i]);
     }
 
-    if (pos < out_size - 3)
+    if (pos < out_size - 2)
     {
-        out[pos++] = ' ';
-        out[pos++] = ' ';
+        // Use a tab so HEX and ASCII columns stay visually separated like RAW line-based output.
+        out[pos++] = '\t';
     }
 
     for (int i = 0; i < len && pos < out_size - 2; i++)
     {
-        unsigned char c = (unsigned char)in[i];
+        unsigned char c = line[i];
+        // Newline bytes are represented in the HEX column and should not render as ASCII glyphs.
+        if (c == '\r' || c == '\n')
+        {
+            continue;
+        }
         out[pos++] = isprint(c) ? (char)c : '.';
     }
 
@@ -157,7 +200,72 @@ static void format_hex_ascii(const char *in, int len, char *out, int out_size)
         out[pos++] = '\n';
     }
 
+    return pos;
+}
+
+static int flush_hex_ascii_line_to_output(char *out, int out_size, int pos)
+{
+    if (g_hex_ascii_line_len == 0)
+    {
+        return pos;
+    }
+    pos = append_hex_ascii_line(g_hex_ascii_line, g_hex_ascii_line_len, out, out_size, pos);
+    g_hex_ascii_line_len = 0;
+    return pos;
+}
+
+static void format_hex_ascii(const char *in, int len, char *out, int out_size)
+{
+    int pos = 0;
+
+    for (int i = 0; i < len && pos < out_size - 1; i++)
+    {
+        if (g_hex_ascii_line_len == MAX_FORMAT_LINE_BYTES)
+        {
+            pos = flush_hex_ascii_line_to_output(out, out_size, pos);
+        }
+
+        g_hex_ascii_line[g_hex_ascii_line_len++] = (uint8_t)in[i];
+
+        if (in[i] == '\r' || in[i] == '\n' || g_hex_ascii_line_len == MAX_FORMAT_LINE_BYTES)
+        {
+            pos = flush_hex_ascii_line_to_output(out, out_size, pos);
+        }
+    }
+
     out[pos] = '\0';
+}
+
+static void flush_pending_format(TermConfig *cfg, display_mode_t display_mode)
+{
+    if (g_paused)
+        return;
+
+    if (display_mode == DISPLAY_MODE_HEX && g_hex_line_len > 0)
+    {
+        char hex_buf[HEX_ASCII_LINE_BUF_SIZE];
+        int pos = flush_hex_line_to_output(hex_buf, (int)sizeof(hex_buf), 0);
+        tui_write(hex_buf, pos);
+        if (cfg->log_enabled)
+        {
+            logger_write(hex_buf, pos);
+        }
+        g_hex_line_len = 0;
+    }
+    else if (display_mode == DISPLAY_MODE_HEX_ASCII && g_hex_ascii_line_len > 0)
+    {
+        char hex_ascii_buf[HEX_ASCII_LINE_BUF_SIZE];
+        int len = flush_hex_ascii_line_to_output(hex_ascii_buf, (int)sizeof(hex_ascii_buf), 0);
+        if (len > 0)
+        {
+            tui_write(hex_ascii_buf, len);
+            if (cfg->log_enabled)
+            {
+                logger_write(hex_ascii_buf, len);
+            }
+        }
+        g_hex_ascii_line_len = 0;
+    }
 }
 
 static void process_serial_input(int serial_fd, display_mode_t display_mode)
@@ -219,7 +327,7 @@ static void flush_display_batch(TermConfig *cfg, display_mode_t display_mode)
         if (display_mode == DISPLAY_MODE_HEX)
         {
             // In hex mode, format the batch before display
-            char hex_buf[DISPLAY_BATCH_SIZE * 4];
+            char hex_buf[HEX_ASCII_LINE_BUF_SIZE];
             format_hex((const char *)g_display_batch, g_display_batch_len, hex_buf, sizeof(hex_buf));
             int hex_len = (int)strlen(hex_buf);
             tui_write(hex_buf, hex_len);
@@ -231,7 +339,7 @@ static void flush_display_batch(TermConfig *cfg, display_mode_t display_mode)
         else if (display_mode == DISPLAY_MODE_HEX_ASCII)
         {
             // In hex mode, format the batch before display
-            char hex_ascii_buf[DISPLAY_BATCH_SIZE * 5];
+            char hex_ascii_buf[HEX_ASCII_LINE_BUF_SIZE];
             format_hex_ascii((const char *)g_display_batch, g_display_batch_len, hex_ascii_buf, sizeof(hex_ascii_buf));
             int hex_ascii_len = (int)strlen(hex_ascii_buf);
             tui_write(hex_ascii_buf, hex_ascii_len);
@@ -482,6 +590,7 @@ void run_engine(int serial_fd, TermConfig *cfg)
     // Final flush
     // Changed from hex_mode to display_mode_t enum to switch between RAW -> HEX -> HEX+ASCII -> RAW
     drain_ring_buffer(cfg, display_mode);
+    flush_pending_format(cfg, display_mode);
     tui_refresh();
 
     tui_destroy();
