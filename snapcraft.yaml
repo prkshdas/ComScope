@@ -1,6 +1,6 @@
 name: comscope
 base: core22
-version: '1.0.2'
+version: '1.0.3'
 summary: Serial port terminal for embedded development boards on Linux
 description: |
   ComScope is a lightweight, fast serial port terminal designed for embedded 
