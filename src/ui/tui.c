@@ -56,6 +56,7 @@ static int scroll_offset = 0; // For Page Up/Down scrolling
 static int input_timeout = 50;
 static struct timespec last_refresh = {0, 0};
 static int pad_dirty = 0;
+static int tui_paused = 0;
 
 /* Throttle display to ~60Hz (16ms) */
 #define REFRESH_INTERVAL_NS (16 * 1000000LL)
@@ -78,6 +79,11 @@ void tui_set_timeout(int timeout_ms)
 {
     input_timeout = timeout_ms;
     timeout(timeout_ms);
+}
+
+void tui_set_paused(int paused)
+{
+    tui_paused = paused;
 }
 
 void tui_init(TermConfig *cfg)
@@ -295,6 +301,7 @@ void tui_scroll_lines(int lines)
         auto_scroll = 1; // Re-enable auto-scroll at bottom
     }
 
+    pad_dirty = 1;
     tui_refresh();
     tui_update_status(NULL, 1); // Refresh status to show scroll position
 }
@@ -315,12 +322,19 @@ void tui_update_status(TermConfig *cfg, int connected)
         scroll_indicator = "| [SCROLLING] ";
     }
 
+    const char *pause_indicator = "";
+    if (tui_paused)
+    {
+        pause_indicator = "| [PAUSED] ";
+    }
+
     mvwprintw(status_win, 0, 0,
-              "%s | %d baud | [%s] %s %s| Ctrl+A = menu",
+              "%s | %d baud | [%s] %s%s%s| Ctrl+A = menu",
               cfg->port,
               baud_rates[cfg->baud_index],
               connected ? "CONNECTED" : "DISCONNECTED",
               cfg->log_enabled ? "| [LOGGING] " : "",
+              pause_indicator,
               scroll_indicator);
 
     wattroff(status_win, A_REVERSE);

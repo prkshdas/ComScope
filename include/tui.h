@@ -20,6 +20,7 @@ void tui_scroll(int direction);
 void tui_scroll_lines(int lines);
 void tui_update_status(TermConfig *cfg, int connected);
 void tui_resize(TermConfig *cfg, int connected);
+void tui_set_paused(int paused);
 int tui_get_char(void);
 void tui_set_timeout(int timeout_ms);
 

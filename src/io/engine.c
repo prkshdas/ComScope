@@ -82,6 +82,7 @@ typedef enum
 static void toggle_pause(void)
 {
     g_paused = !g_paused;
+    tui_set_paused(g_paused);
 }
 
 static inline long long timespec_diff_ms(struct timespec *a, struct timespec *b)
@@ -425,6 +426,7 @@ static void handle_command_mode(TermConfig *cfg, int serial_fd)
     {
         // Toggle pause state
         g_paused = !g_paused;
+        tui_set_paused(g_paused);
     }
     else if (ch == 'q' || ch == 'Q' || ch == 27)
     {
@@ -504,11 +506,13 @@ void run_engine(int serial_fd, TermConfig *cfg)
                     if (event.bstate & BUTTON4_PRESSED)
                     {
                         tui_scroll_lines(100);
+                        tui_scroll_lines(3);
                     }
 #if defined(BUTTON5_PRESSED)
                     else if (event.bstate & BUTTON5_PRESSED)
                     {
                         tui_scroll_lines(-100);
+                        tui_scroll_lines(-3);
                     }
 #endif
 #endif
